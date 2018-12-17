@@ -443,6 +443,7 @@ public class GhprbTrigger extends GhprbTriggerBackwardsCompatible {
 
         values.add(new StringParameterValue("ghprbGhRepository", getString(cause.getRepositoryName(), "")));
         values.add(new StringParameterValue("ghprbCredentialsId", getString(cause.getCredentialsId(), "")));
+        values.add(new StringParameterValue("ghprbMilestone", getString(cause.getMilestone(), "")));
 
         ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
             @Override

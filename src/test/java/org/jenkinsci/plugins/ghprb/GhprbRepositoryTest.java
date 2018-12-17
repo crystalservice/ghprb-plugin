@@ -52,6 +52,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
@@ -302,6 +303,7 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(1)).getBody();
         verify(ghPullRequest, times(1)).getId();
         verify(ghPullRequest, times(2)).getLabels();
+        verify(ghPullRequest, atLeastOnce()).getMilestone();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(1)).isWhitelisted(eq(ghUser)); // Call to Github API
@@ -483,6 +485,7 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(1)).getBody();
         verify(ghPullRequest, times(1)).getId();
         verify(ghPullRequest, times(4)).getLabels();
+        verify(ghPullRequest, atLeastOnce()).getMilestone();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(1)).isWhitelisted(eq(ghUser)); // Call to Github API
@@ -577,6 +580,7 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(1)).getBody();
         verify(ghPullRequest, times(1)).getId();
         verify(ghPullRequest, times(2)).getLabels();
+        verify(ghPullRequest, atLeastOnce()).getMilestone();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(1)).isWhitelisted(eq(ghUser)); // Call to Github API
@@ -680,6 +684,7 @@ public class GhprbRepositoryTest {
         verify(ghPullRequest, times(4)).listCommits();
 
         verify(ghPullRequest, times(2)).getBody();
+        verify(ghPullRequest, atLeastOnce()).getMilestone();
         verifyNoMoreInteractions(ghPullRequest);
 
         verify(helper, times(2)).isWhitelisted(eq(ghUser)); // Call to Github API

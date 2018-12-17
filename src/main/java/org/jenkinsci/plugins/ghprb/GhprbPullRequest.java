@@ -7,6 +7,7 @@ import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHLabel;
+import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHPullRequestFileDetail;
@@ -882,4 +883,17 @@ public class GhprbPullRequest {
     public String getLastBuildId() {
         return lastBuildId;
     }
+
+    /**
+     * @return pull request milestone title
+     */
+    public String getMilestone() {
+        try {
+            GHMilestone milestone = getPullRequest().getMilestone();
+            return milestone != null ? milestone.getTitle() : "";
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
+
 }
