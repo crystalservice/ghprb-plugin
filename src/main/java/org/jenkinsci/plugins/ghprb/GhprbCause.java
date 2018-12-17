@@ -46,6 +46,8 @@ public class GhprbCause extends Cause {
 
     private final String credentialsId;
 
+    private final String milestone;
+
     public GhprbCause(String commit,
                       int pullID,
                       boolean merged,
@@ -61,7 +63,8 @@ public class GhprbCause extends Cause {
                       String description,
                       String authorRepoGitUrl,
                       String repoName,
-                      String credentialsId) {
+                      String credentialsId,
+                      String milestone) {
 
         this.commit = commit;
         this.pullID = pullID;
@@ -80,6 +83,8 @@ public class GhprbCause extends Cause {
         this.authorRepoGitUrl = authorRepoGitUrl;
         this.repoName = repoName;
         this.credentialsId = credentialsId;
+
+        this.milestone = milestone;
     }
 
     @Override
@@ -159,5 +164,9 @@ public class GhprbCause extends Cause {
 
     public String getCredentialsId() {
         return credentialsId;
+    }
+
+    public String getMilestone() {
+        return milestone;
     }
 }

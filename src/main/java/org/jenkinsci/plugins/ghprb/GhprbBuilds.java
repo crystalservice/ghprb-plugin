@@ -74,7 +74,8 @@ public class GhprbBuilds {
                 pr.getDescription(),
                 pr.getAuthorRepoGitUrl(),
                 repo.getName(),
-                trigger.getGitHubApiAuth().getCredentialsId());
+                trigger.getGitHubApiAuth().getCredentialsId(),
+                pr.getMilestone());
 
         for (GhprbExtension ext : Ghprb.getJobExtensions(trigger, GhprbCommitStatus.class)) {
             if (ext instanceof GhprbCommitStatus) {
