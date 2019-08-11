@@ -28,8 +28,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class GhprbSimpleStatus extends GhprbExtension implements
         GhprbCommitStatus, GhprbGlobalExtension, GhprbProjectExtension, GhprbGlobalDefault {
@@ -124,12 +126,11 @@ public class GhprbSimpleStatus extends GhprbExtension implements
         }
 
         String statusUrl = getDescriptor().getStatusUrlDefault(this);
-        if (commitStatusContext == "") {
+        if (Objects.equals(commitStatusContext, "")) {
             commitStatusContext = getDescriptor().getCommitStatusContextDefault(this);
         }
 
-        String context = Util.fixEmpty(commitStatusContext);
-        context = Ghprb.replaceMacros(project, context);
+        final List<String> contexts = splitMultiContext(commitStatusContext, project);
 
         if (!StringUtils.isEmpty(triggeredStatus)) {
             sb.append(Ghprb.replaceMacros(project, triggeredStatus));
@@ -149,7 +150,7 @@ public class GhprbSimpleStatus extends GhprbExtension implements
 
         String message = sb.toString();
         try {
-            ghRepository.createCommitStatus(commitSha, state, url, message, context);
+            createCommitStatus(ghRepository, commitSha, state, url, message, contexts, null);
         } catch (IOException e) {
             throw new GhprbCommitStatusException(e, state, message, prId);
         }
@@ -266,8 +267,7 @@ public class GhprbSimpleStatus extends GhprbExtension implements
             url = Ghprb.replaceMacros(build, listener, statusUrl);
         }
 
-        String context = Util.fixEmpty(commitStatusContext);
-        context = Ghprb.replaceMacros(build, listener, context);
+        final List<String> contexts = splitMultiContext(commitStatusContext, build, listener);
 
         listener.getLogger().println(String.format("Setting status of %s to %s with url %s and message: '%s'",
                 sha1,
@@ -275,15 +275,68 @@ public class GhprbSimpleStatus extends GhprbExtension implements
                 url,
                 message
         ));
-        if (context != null) {
-            listener.getLogger().println("Using context: " + context);
-        }
-
         try {
-            repo.createCommitStatus(sha1, state, url, message, context);
+            createCommitStatus(repo, sha1, state, url, message, contexts, listener);
         } catch (IOException e) {
             throw new GhprbCommitStatusException(e, state, message, pullId);
         }
+    }
+
+    private void createCommitStatus(GHRepository repo,
+                                    String commitSha,
+                                    GHCommitState state,
+                                    String url,
+                                    String message,
+                                    List<String> contexts, TaskListener listener) throws IOException {
+        if (contexts.isEmpty()) {
+            repo.createCommitStatus(commitSha, state, url, message, null);
+            return;
+        }
+        for (String context : contexts) {
+            if (listener != null) {
+                listener.getLogger().println("Using context: " + context);
+            }
+            repo.createCommitStatus(commitSha, state, url, message, context);
+        }
+    }
+
+    private List<String> splitMultiContext(String multiContext, Run<?, ?> build, TaskListener listener) {
+        return normalizeAndReplaceMacros(splitMultiContext(Util.fixEmptyAndTrim(multiContext)), null, build, listener);
+    }
+
+    private List<String> splitMultiContext(String multiContext, Job<?, ?> project) {
+        return normalizeAndReplaceMacros(splitMultiContext(Util.fixEmptyAndTrim(multiContext)), project, null, null);
+    }
+
+    private String[] splitMultiContext(String multiContext) {
+        if (multiContext == null) {
+            return null;
+        }
+        if (multiContext.startsWith("[") && multiContext.endsWith("]") && multiContext.contains(",")) {
+            return multiContext.substring(1, multiContext.length() - 1).split(",");
+        }
+        return new String[] {multiContext};
+    }
+
+    private List<String> normalizeAndReplaceMacros(String[] contexts, Job<?, ?> project, Run<?, ?> build, TaskListener listener) {
+        if (contexts == null) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<>();
+        for (String context : contexts) {
+            String normalizedContext = normalizeAndReplaceMacros(context, project, build, listener);
+            if (normalizedContext != null) {
+                result.add(normalizedContext);
+            }
+        }
+        return result;
+    }
+
+    private String normalizeAndReplaceMacros(String context, Job<?, ?> project, Run<?, ?> build, TaskListener listener) {
+        if (project != null) {
+            return Ghprb.replaceMacros(project, Util.fixEmptyAndTrim(context));
+        }
+        return Ghprb.replaceMacros(build, listener, Util.fixEmptyAndTrim(context));
     }
 
     @Override

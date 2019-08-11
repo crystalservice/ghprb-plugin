@@ -109,4 +109,23 @@ public class GhprbSimpleStatusTest extends org.jenkinsci.plugins.ghprb.extension
 
         verifyNoMoreInteractions(ghprbPullRequest);
     }
+
+    @Test
+    public void testSendingMultipleContext() throws Exception {
+        String mergedMessage = "Build triggered for original commit.";
+        given(ghprbPullRequest.getHead()).willReturn("sha");
+        given(ghprbPullRequest.isMergeable()).willReturn(false);
+
+        GhprbSimpleStatus status = new GhprbSimpleStatus("[context 1, context 2, context 3]");
+        GhprbSimpleStatus statusSpy = spy(status);
+
+        statusSpy.onBuildTriggered(trigger.getActualProject(), "sha", false, 1, ghRepository);
+        verify(ghRepository).createCommitStatus(eq("sha"), eq(GHCommitState.PENDING), eq(""), eq(mergedMessage), eq("context 1"));
+        verify(ghRepository).createCommitStatus(eq("sha"), eq(GHCommitState.PENDING), eq(""), eq(mergedMessage), eq("context 2"));
+        verify(ghRepository).createCommitStatus(eq("sha"), eq(GHCommitState.PENDING), eq(""), eq(mergedMessage), eq("context 3"));
+
+        verifyNoMoreInteractions(ghRepository);
+
+        verifyNoMoreInteractions(ghprbPullRequest);
+    }
 }
