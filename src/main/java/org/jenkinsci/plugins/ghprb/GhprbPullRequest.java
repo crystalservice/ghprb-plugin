@@ -467,7 +467,7 @@ public class GhprbPullRequest {
             }
 
             List<String> paths = new ArrayList<String>();
-            for (GHPullRequestFileDetail fileDetail : pr.listFiles()) {
+            for (GHPullRequestFileDetail fileDetail : pr.listFiles().withPageSize(100)) {
                 paths.add(fileDetail.getFilename());
             }
 
@@ -720,7 +720,7 @@ public class GhprbPullRequest {
         String authorRepoGitUrl = "";
 
         if (prHead != null && prHead.getRepository() != null) {
-            authorRepoGitUrl = prHead.getRepository().gitHttpTransportUrl();
+            authorRepoGitUrl = prHead.getRepository().getHttpTransportUrl();
         }
         return authorRepoGitUrl;
     }
